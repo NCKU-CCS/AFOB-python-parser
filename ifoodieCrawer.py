@@ -4,16 +4,26 @@
   Created by 中皓 李 on 2016/10/18.
   Copyright © 2016 中皓 李. All rights reserved.
 '''
-import requests 
+from urllib.parse import quote 
+import random
 from bs4 import BeautifulSoup #@note-(install via pip3)
 from selenium import webdriver #@note-parse ajax call back from website(install via pip3)
 
-city=''
-requestURL = 'https://ifoodie.tw/ranking/weekly/'+city+'/' 
+city='台南'
+district='北區'
+meal='早餐'
+requestURL= 'https://ifoodie.tw/city/'+quote(city)+'?q='+quote(district)+quote(' ')+quote(meal)
 driver = webdriver.PhantomJS(executable_path=r'/Users/zhonghaoli/Downloads/phantomjs-2.1.1-macosx/bin/phantomjs') # PhantomJS
 driver.get(requestURL)
 pageSource = driver.page_source 
 soup = BeautifulSoup(pageSource, 'html.parser')
-result = soup.findAll("h4",{"class","title"})
-for i in result: 
-     print('https://ifoodie.tw'+i.a['href'])
+result = soup.findAll("div",{"class","title media-heading"}) 
+storeRequestUrl='https://ifoodie.tw'+result[random.randrange(1,len(result))].a['href'];
+driver.get(storeRequestUrl)
+pageSource = driver.page_source 
+soup = BeautifulSoup(pageSource, 'html.parser')
+restaurantName = soup.findAll("div",{"class","restaurant item right"})
+print(restaurantName[0].h4.a.text)
+restaurantAddr = soup.findAll("div",{"class","address right"})
+print(restaurantAddr[0].text)
+print(storeRequestUrl)
