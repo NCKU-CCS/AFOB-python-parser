@@ -32,26 +32,26 @@ cities={
 
 driver = webdriver.PhantomJS(executable_path=r'/Users/zhonghaoli/Downloads/phantomjs-2.1.1-macosx/bin/phantomjs') # PhantomJS
 
-def query( city , district , meal ):
-	requestURL= 'https://ifoodie.tw/city/'+quote(city)+'?q='+quote(district)+quote(' ')+quote(meal)
+def query(requestURL,className):
 	driver.get(requestURL)
 	pageSource = driver.page_source 
 	soup = BeautifulSoup(pageSource, 'html.parser')
-	result = soup.findAll("div",{"class","title media-heading"}) 
+	result = soup.findAll("div",{"class",className}) 
 	return result
 
 
 for city in list(cities.keys()):
-	city='台南'#debug mode
-	print(city)#debug mode
+	city='台南'#@note-debug mode
+	print(city)#@note-debug mode
 	for district in cities[city] :
-		district='東區'#debug mode
-		print(district)#debug mode
+		district='東區'#@note-debug mode
+		print(district)#@note-debug mode
 		restaurantInfo = []
 		restaurantInfo.clear()
 		for mealtype in meals :
-			print('query='+city+'+'+district+'+'+mealtype)
-			result = query( city , district , mealtype )
+			print('query='+city+'+'+district+'+'+mealtype)#@note-debug mode
+			requestURL= 'https://ifoodie.tw/city/'+quote(city)+'?q='+quote(district)+quote(' ')+quote(meal)
+			result = query( requestURL , "title media-heading" )
 			if not result :
 				break
 			print(mealtype)
@@ -65,13 +65,9 @@ for city in list(cities.keys()):
 				else:
 					storeContent['category']=[mealtype]
 				storeRequestUrl='https://ifoodie.tw'+store.a['href'];
-				driver.get(storeRequestUrl)
-				pageSource = driver.page_source 
-				soup = BeautifulSoup(pageSource, 'html.parser')
-				restaurantName = soup.findAll("div",{"class","restaurant item right"})
+				restaurantName=query( storeRequestUrl , "restaurant item right" )
 				if not restaurantName[0].h4.a.text:
 					continue
-				print('>>>'+restaurantName[0].h4.a.text)
 				breakFlag = False
 				for item in restaurantInfo :
 					if(breakFlag):
@@ -82,17 +78,9 @@ for city in list(cities.keys()):
 							for aaa in item['category']:
 								if(aaa==mealtype):
 									breakFlag = True
-									print('++++++++++++++')
-									print('current meal is='+mealtype)
-									print('category meal is='+mealtype)
-									print('++++++++++++++')
 									break
 							if not breakFlag :
 								item['category'].extend([mealtype])
-								#print('======new cate=======')
-								#for j in storeContent['category']:
-								#	print(j)
-								#print('=============')
 								breakFlag=True
 					if(breakFlag):
 						break
@@ -103,9 +91,8 @@ for city in list(cities.keys()):
 				storeContent['address']=restaurantAddr[0].text
 				storeContent['link']=storeRequestUrl
 				restaurantInfo.append(storeContent)
-			#break #break-mealtype
 		if restaurantInfo :
 			with open(city+"-"+district+".json", 'a') as out:
 				out.write(json.dumps(restaurantInfo))
-		break #break-distric
-	break #break-city
+		break #@note-break_distric-debug mode
+	break #@note-break-city-debug mode
