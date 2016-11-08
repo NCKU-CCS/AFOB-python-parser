@@ -32,12 +32,11 @@ cities={
 
 driver = webdriver.PhantomJS(executable_path=r'/Users/zhonghaoli/Downloads/phantomjs-2.1.1-macosx/bin/phantomjs') # PhantomJS
 
-def query(requestURL,className):
+def brewSoup(requestURL):
 	driver.get(requestURL)
 	pageSource = driver.page_source 
-	soup = BeautifulSoup(pageSource, 'html.parser')
-	result = soup.findAll("div",{"class",className}) 
-	return result
+	return BeautifulSoup(pageSource, 'html.parser')
+
 
 
 for city in list(cities.keys()):
@@ -50,8 +49,9 @@ for city in list(cities.keys()):
 		restaurantInfo.clear()
 		for mealtype in meals :
 			print('query='+city+'+'+district+'+'+mealtype)#@note-debug mode
-			requestURL= 'https://ifoodie.tw/city/'+quote(city)+'?q='+quote(district)+quote(' ')+quote(meal)
-			result = query( requestURL , "title media-heading" )
+			requestURL= 'https://ifoodie.tw/city/'+quote(city)+'?q='+quote(district)+quote(' ')+quote(mealtype)
+			soup = brewSoup(requestURL)
+			result = soup.findAll("div",{"class","title media-heading"}) 
 			if not result :
 				break
 			print(mealtype)
@@ -65,7 +65,8 @@ for city in list(cities.keys()):
 				else:
 					storeContent['category']=[mealtype]
 				storeRequestUrl='https://ifoodie.tw'+store.a['href'];
-				restaurantName=query( storeRequestUrl , "restaurant item right" )
+				soup=brewSoup(storeRequestUrl)
+				restaurantName=soup.findAll("div",{"class","restaurant item right"})
 				if not restaurantName[0].h4.a.text:
 					continue
 				breakFlag = False
