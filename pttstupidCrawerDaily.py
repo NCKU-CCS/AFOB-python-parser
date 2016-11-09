@@ -51,10 +51,10 @@ for article in articles :
 		#sanitize unwanted contents 
 		jokeContent['title']= title[2].text
 		jokeContent['date']= article.find("div",{"class","date"}).text
-		jokeContent['context']=element[0].text
+		jokeContent['context']=element[0].text.replace('"', '\"').replace("'", "\'")
 		jokeArray.append(jokeContent)
 if jokeArray :
-	with open(currentDate+".json", 'a') as out:
+	with open("{:02d}/{:02d}".format(now.month,now.day)+".json", 'a') as out:
 		out.write(json.dumps(jokeArray))
 		
 
