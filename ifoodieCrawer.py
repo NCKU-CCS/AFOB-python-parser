@@ -94,6 +94,6 @@ for city in list(cities.keys()):
 				restaurantInfo.append(storeContent)
 		if restaurantInfo :
 			with open(city+"-"+district+".json", 'a') as out:
-				out.write(json.dumps(restaurantInfo))
+				out.write(json.dumps(restaurantInfo, ensure_ascii=False, indent=4))
 		break #@note-break_distric-debug mode
 	break #@note-break-city-debug mode
