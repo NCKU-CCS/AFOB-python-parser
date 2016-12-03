@@ -1,8 +1,8 @@
 '''
-  weatherParser.py
-  @about-Parse data from central weather bureau of taiwan according to the district of the target city and current time 
-  Created by 中皓 李 on 2016/10/23.
-  Copyright © 2016 中皓 李. All rights reserved.
+    weatherParser.py
+    @about-Parse data from central weather bureau of taiwan according to the district of the target city and current time 
+    Created by 中皓 李 on 2016/10/23.
+    Copyright © 2016 中皓 李. All rights reserved.
 '''
 import json
 import requests
@@ -34,37 +34,42 @@ def getCityID(x):
         'tainan': 'F-D0047-077',
         'Lienchiang ': 'F-D0047-081',
         'Kinmen': 'F-D0047-085',
-    }.get(x,9) 
+    }.get(x,False) 
 
-currentTime=dateutil.parser.parse(str('')) #input current time 
-city='' #input target city
-district='' #input target district
-developerAuthkey='CWB-335DC393-FCA8-4D15-9856-7AF060E0C210' #@note-Auth key need to be refreshed from time to time
-cityId= getCityID(city) #input target city ID 
-requestURL = 'http://opendata.cwb.gov.tw/opendataapi?dataid='+cityId+'&authorizationkey='+developerAuthkey
-
-r = requests.get(requestURL)
-paragraphs = """"""
-if r.status_code == 200:
-	soup = BeautifulSoup(r.text,"html.parser")
-	s=soup.findAll("location")
-	for letter in s:
-		paragraphs+=str(letter)
-	o = xmltodict.parse("<"+city+">"+paragraphs+"</"+city+">")
-	for districtIndex, item in enumerate(o[city]['location']):
-		if(o[city]['location'][districtIndex]['locationname']==district):
-			break
-	for timeIndex, item2 in enumerate(o[city]['location'][districtIndex]['weatherelement'][9]['time']): #@note-['weatherelement'][9] for full weather disciption
-		if(dateutil.parser.parse(str(o[city]['location'][districtIndex]['weatherelement'][9]['time'][timeIndex]['starttime']))<=currentTime<=dateutil.parser.parse(str(o[city]['location'][districtIndex]['weatherelement'][9]['time'][timeIndex]['endtime']))):
-			print(o[city]['location'][districtIndex]['weatherelement'][9]['time'][timeIndex]['elementvalue']['value'])
-			break
-		else:
-			print('unable to find')
-			break
-else:
-	r.raise_for_status()
-
-
-
+currentTime=dateutil.parser.parse(str('2016-12-03T18:00:00+08:00')) #input current time ex: 2016/12/03/18:00:00 in Taiwan as 2016-12-03T18:00:00+08:00
+city='tainan' #input target city
+district='東區' #input target district
+developerAuthkey='CWB-A2AE7398-BAE2-480E-961B-4B6D8F654F10' #@note-Auth key need to be refreshed from time to time
+cityId= getCityID(city) #input target city ID
+findWeatherFlag= False
+findDistrictFlag= False
+if cityId :
+    requestURL = 'http://opendata.cwb.gov.tw/opendataapi?dataid='+cityId+'&authorizationkey='+developerAuthkey
+    r = requests.get(requestURL)
+    paragraphs = """"""
+    if r.status_code == 200:
+        soup = BeautifulSoup(r.text,"html.parser")
+        s=soup.findAll("location")
+        for letter in s:
+            paragraphs+=str(letter)
+        o = xmltodict.parse("<"+city+">"+paragraphs+"</"+city+">")
+        for districtIndex, item in enumerate(o[city]['location']):
+            if(o[city]['location'][districtIndex]['locationname']==district):
+                findDistrictFlag= True
+                break
+        if findDistrictFlag:
+            for timeIndex, item2 in enumerate(o[city]['location'][districtIndex]['weatherelement'][9]['time']): #@note-['weatherelement'][9] for full weather disciption
+                if(dateutil.parser.parse(str(o[city]['location'][districtIndex]['weatherelement'][9]['time'][timeIndex]['starttime']))<=currentTime<=dateutil.parser.parse(str(o[city]['location'][districtIndex]['weatherelement'][9]['time'][timeIndex]['endtime']))):
+                    print(o[city]['location'][districtIndex]['weatherelement'][9]['time'][timeIndex]['elementvalue']['value'])
+                    findWeatherFlag= True
+                    break
+            if not findWeatherFlag :
+                print('unable to get weather')
+        else:
+            print('unable to find district')
+    else:
+        r.raise_for_status()
+else :
+    print('unable to find city')
 
 
